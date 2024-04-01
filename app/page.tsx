@@ -1,24 +1,49 @@
 "use client";
 
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
 
-const toneOptions = ["Friendly", "Sarcastic", "Dry", "Witty"];
-const typeOptions = ["Pun", "One-liner", "Story"];
-const topicOptions = ["Tech", "Food", "Animals", "Random"];
+const creativityOptions = ["Low", "Medium", "High"];
 
 export default function Chat() {
-  const [count, setCount] = useState("3");
-  const [tone, setTone] = useState(toneOptions[0]);
-  const [type, setType] = useState(typeOptions[0]);
-  const [topic, setTopic] = useState(topicOptions[0]);
+  const [typeOptions, setTypeOptions] = useState<string[]>([]);
+  const [toneOptions, setToneOptions] = useState<string[]>([]);
+  const [topicOptions, setTopicOptions] = useState<string[]>([]);
+
+  const [count, setCount] = useState<string>("3");
+  const [tone, setTone] = useState<string>();
+  const [type, setType] = useState<string>();
+  const [topic, setTopic] = useState<string>();
+  const [creativity, setCreativity] = useState<string>();
+
   const [message, setMessage] = useState<string>();
   const [evaluation, setEvaluation] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    async function fetchData() {
+      const [typeResponse, toneResponse, topicResponse] = await Promise.all([
+        fetch("/types.json"),
+        fetch("/tones.json"),
+        fetch("/topics.json"),
+      ]);
+
+      const [types, tones, topics] = await Promise.all([
+        typeResponse.json(),
+        toneResponse.json(),
+        topicResponse.json(),
+      ]);
+
+      setTypeOptions(types);
+      setToneOptions(tones);
+      setTopicOptions(topics);
+    }
+    fetchData();
+  }, []);
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setIsLoading(true);
-    const payload = { count, tone, type, topic };
+    const payload = { count, tone, type, topic, creativity };
 
     try {
       const response = await fetch("/api/joke", {
@@ -47,6 +72,20 @@ export default function Chat() {
     <div className="flex w-full h-screen">
       <div className="bg-gray-100 p-4 w-1/8">
         <form onSubmit={handleSubmit}>
+          <label>
+            Topic:
+            <select
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="block w-full p-2 border border-gray-300 rounded mb-4"
+            >
+              {topicOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             Count:
             <input
@@ -85,13 +124,13 @@ export default function Chat() {
             </select>
           </label>
           <label>
-            Topic:
+            Creativity Level:
             <select
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
+              value={creativity}
+              onChange={(e) => setCreativity(e.target.value)}
               className="block w-full p-2 border border-gray-300 rounded mb-4"
             >
-              {topicOptions.map((option) => (
+              {creativityOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -100,7 +139,7 @@ export default function Chat() {
           </label>
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 my-4 px-4 rounded"
           >
             Generate Joke
           </button>
