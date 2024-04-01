@@ -25,3 +25,19 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Use this class for the loader div */
+.loader {
+  animation: spin 1s linear infinite;
+  border-color: transparent transparent transparent #db347c; /* Only the left side shows the border */
+  box-shadow: 0 0 10px rgba(195, 31, 31, 0.5); /* Adjusted shadow for visibility */
+}

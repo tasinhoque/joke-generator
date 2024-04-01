@@ -11,10 +11,13 @@ export default function Chat() {
   const [tone, setTone] = useState(toneOptions[0]);
   const [type, setType] = useState(typeOptions[0]);
   const [topic, setTopic] = useState(topicOptions[0]);
-  const [messages, setMessages] = useState<string[]>(["Hi there!"]);
+  const [message, setMessage] = useState<string>();
+  const [evaluation, setEvaluation] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     const payload = { count, tone, type, topic };
 
     try {
@@ -30,17 +33,19 @@ export default function Chat() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const { message } = await response.json();
-      console.log(message);
-      setMessages([message]);
+      const { message, evaluation } = await response.json();
+      setMessage(message);
+      setEvaluation(evaluation);
     } catch (error) {
       console.error("Failed to generate the joke:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="flex w-full h-screen">
-      <div className="flex-initial bg-gray-100 p-4 w-1/4">
+      <div className="bg-gray-100 p-4 w-1/8">
         <form onSubmit={handleSubmit}>
           <label>
             Count:
@@ -101,22 +106,39 @@ export default function Chat() {
           </button>
         </form>
       </div>
-      <div className="flex-auto p-4">
-        <div className="flex flex-col h-full">
-          <div className="overflow-auto h-full">
-            {messages.map((m, index) => (
-              <div
-                key={index}
-                className={
-                  "whitespace-pre-wrap bg-slate-200 p-3 m-2 rounded-lg"
-                }
-              >
-                {m}
-              </div>
-            ))}
-          </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center w-full h-full absolute">
+          <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-12 w-12"></div>
         </div>
-      </div>
+      ) : (
+        <>
+          {!message ? (
+            <></>
+          ) : (
+            <div className="w-1/4 p-4">
+              <h2 className="text-xl font-bold mb-4">Jokes</h2>
+              <div className="overflow-auto h-full">
+                <div className="whitespace-pre-wrap bg-green-200 p-3 m-2 rounded-lg">
+                  {message}
+                </div>
+              </div>
+            </div>
+          )}
+          {!evaluation ? (
+            <></>
+          ) : (
+            <div className="w-1/2 p-4">
+              <h2 className="text-xl font-bold mb-4">Evaluation</h2>
+              <div className="overflow-auto h-full">
+                <div className="whitespace-pre-wrap bg-slate-200 p-3 m-2 rounded-lg">
+                  {evaluation}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
