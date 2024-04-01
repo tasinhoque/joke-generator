@@ -1,6 +1,14 @@
 "use client";
 
 import { FormEventHandler, useEffect, useState } from "react";
+import { getRandomInt } from "../helpers/randomInt";
+import {
+  Button,
+  LoadingSpinner,
+  MessageBox,
+  Select,
+  TextInput,
+} from "./components";
 
 const creativityOptions = ["Low", "Medium", "High"];
 
@@ -9,14 +17,14 @@ export default function Chat() {
   const [toneOptions, setToneOptions] = useState<string[]>([]);
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
 
-  const [count, setCount] = useState<string>("3");
-  const [tone, setTone] = useState<string>();
-  const [type, setType] = useState<string>();
-  const [topic, setTopic] = useState<string>();
-  const [creativity, setCreativity] = useState<string>();
+  const [count, setCount] = useState<number | undefined>();
+  const [tone, setTone] = useState<string | undefined>();
+  const [type, setType] = useState<string | undefined>();
+  const [topic, setTopic] = useState<string | undefined>();
+  const [creativity, setCreativity] = useState<string | undefined>();
 
-  const [message, setMessage] = useState<string>();
-  const [evaluation, setEvaluation] = useState<string>();
+  const [message, setMessage] = useState<string | undefined>();
+  const [evaluation, setEvaluation] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -36,9 +44,24 @@ export default function Chat() {
       setTypeOptions(types);
       setToneOptions(tones);
       setTopicOptions(topics);
+
+      setCount(getRandomInt(10) + 1);
+      setTone(tones[getRandomInt(tones.length)]);
+      setType(types[getRandomInt(types.length)]);
+      setTopic(topics[getRandomInt(topics.length)]);
+      setCreativity(creativityOptions[getRandomInt(3)]);
     }
+
     fetchData();
   }, []);
+
+  const randomize = () => {
+    setCount(getRandomInt(10) + 1);
+    setTone(toneOptions[getRandomInt(toneOptions.length)]);
+    setType(typeOptions[getRandomInt(typeOptions.length)]);
+    setTopic(topicOptions[getRandomInt(topicOptions.length)]);
+    setCreativity(creativityOptions[getRandomInt(3)]);
+  };
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
@@ -69,113 +92,65 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex w-full h-screen">
-      <div className="bg-gray-100 p-4 w-1/8">
+    <div className="flex w-full h-full">
+      <div className="bg-gray-100 p-4 w-1/8 h-screen">
         <form onSubmit={handleSubmit}>
-          <label>
-            Topic:
-            <select
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-              {topicOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Count:
-            <input
-              type="number"
-              value={count}
-              onChange={(e) => setCount(e.target.value)}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
-            />
-          </label>
-          <label>
-            Tone:
-            <select
-              value={tone}
-              onChange={(e) => setTone(e.target.value)}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-              {toneOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Type:
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-              {typeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Creativity Level:
-            <select
-              value={creativity}
-              onChange={(e) => setCreativity(e.target.value)}
-              className="block w-full p-2 border border-gray-300 rounded mb-4"
-            >
-              {creativityOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 my-4 px-4 rounded"
+          <Select
+            label="Topic"
+            options={topicOptions}
+            value={topic}
+            onChange={(value: string) => setTopic(value)}
+          />
+          <TextInput
+            label="Count"
+            value={count}
+            onChange={(value: number) => setCount(value)}
+          />
+          <Select
+            label="Tone"
+            options={toneOptions}
+            value={tone}
+            onChange={(value: string) => setTone(value)}
+          />
+          <Select
+            label="Type"
+            options={typeOptions}
+            value={type}
+            onChange={(value: string) => setType(value)}
+          />
+          <Select
+            label="Creativity Level"
+            options={creativityOptions}
+            value={creativity}
+            onChange={(value: string) => setCreativity(value)}
+          />
+          <Button
+            onClick={randomize}
+            colorClass="bg-green-600 hover:bg-green-700"
           >
-            Generate Joke
-          </button>
+            Get Random Jokes
+          </Button>
+
+          <Button colorClass="bg-blue-600 hover:bg-blue-700">
+            Generate Jokes
+          </Button>
         </form>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center w-full h-full absolute">
-          <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-12 w-12"></div>
-        </div>
+        <LoadingSpinner />
       ) : (
         <>
-          {!message ? (
-            <></>
-          ) : (
-            <div className="w-1/4 p-4">
-              <h2 className="text-xl font-bold mb-4">Jokes</h2>
-              <div className="overflow-auto h-full">
-                <div className="whitespace-pre-wrap bg-green-200 p-3 m-2 rounded-lg">
-                  {message}
-                </div>
-              </div>
-            </div>
-          )}
-          {!evaluation ? (
-            <></>
-          ) : (
-            <div className="w-1/2 p-4">
-              <h2 className="text-xl font-bold mb-4">Evaluation</h2>
-              <div className="overflow-auto h-full">
-                <div className="whitespace-pre-wrap bg-slate-200 p-3 m-2 rounded-lg">
-                  {evaluation}
-                </div>
-              </div>
-            </div>
-          )}
+          <MessageBox
+            title="Jokes"
+            message={message}
+            bgColorClass="bg-green-200"
+          />
+          <MessageBox
+            title="Evaluation"
+            message={evaluation}
+            bgColorClass="bg-slate-200"
+          />
         </>
       )}
     </div>
